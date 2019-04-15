@@ -4,9 +4,9 @@ export function dispatchRoute(controller) {
     }
 
     return fetch(`views/${controller.view}`)
-            .then(res => res.text())
-            .then(htmlText => {
-                document.getElementsByTagName('main')[0].innerHTML = htmlText;
-                controller.init();
-            });
+        .then(res => res.text())
+        .then(htmlText => {
+            document.getElementsByTagName('main')[0].innerHTML = htmlText;
+            controller.init();
+        });
 }
