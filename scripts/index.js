@@ -6,7 +6,6 @@ import Chat from '../controllers/Chat.js';
 
 firebase.initializeApp(config);
 
-
 const router = new Router({
     mode: 'hash'
 });
