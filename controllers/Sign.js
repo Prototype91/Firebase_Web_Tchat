@@ -49,6 +49,10 @@ export default class Sign {
         const password_confirm = document.getElementById('signin_password_confirm').value;
         const avatar = document.getElementById('signin_avatar').files[0];
 
+        const storageRef = firebase.storage().ref();
+
+        
+
         console.log("Bonjour ", firstname, lastname, email, password, password_confirm, avatar);
 
         if (password !== password_confirm) {
@@ -58,6 +62,7 @@ export default class Sign {
 
         firebase.auth().createUserWithEmailAndPassword(email, password)
             .then((userCredentials) => firebase.firestore().collection('users').doc(userCredentials.user.uid).set({ firstname, lastname, email }))
+            .then(storageRef.child(`images/${avatar.name}`).put(avatar))
             .then(() => this.router.navigateTo('/chat'))
             .catch(error => {
                 this.displayError(error.code + '\n' + error.message);

@@ -8,7 +8,7 @@ export default class Chat {
         this.router = router;
 
         this.user = null;
-        this.message = [];
+        this.messages = [];
 
     }
 
@@ -16,31 +16,35 @@ export default class Chat {
 
         console.log('CHAT !');
 
-        //const user = store.getState().user;
+        this.user = store.getState().user;
 
-        //Récupération de l'utilisateur en cours
-        firebase.auth().onAuthStateChanged(user => {
+        if(!this.user) {
+            this.router.navigateTo('/');
+            return;
+        }
 
-            firebase.firestore().collection('users').doc(user.uid).get()
-                .then(user => {
+        const wrapper = document.getElementById('wrapper');
+        wrapper.classList.remove('d-none');
+        wrapper.getElementsByTagName('h1')[0].textContent = `Bienvenue ${this.user.firstname} ${this.user.lastname}`;
 
-                    //Mise à jour du state
-                    store.setState({ user: user.data() });
+        this.initChat();
 
-                    //Définition de l'utilisateur
-                    this.user = user.data();
-
-                    const wrapper = document.getElementById('wrapper');
-                    wrapper.classList.remove('d-none');
-                    wrapper.getElementsByTagName('h1')[0].textContent = `Bienvenue ${this.user.firstname} ${this.user.lastname}`;
-
-                    this.initChat();
-                });
-        });
     }
 
     initChat() {
+
         document.getElementById('addMessage').addEventListener('submit', this.onAddMessage.bind(this), false);
+
+        firebase.database().ref('/messages').limitToLast(15).on('value', snapshot => {
+
+            this.messages.length = 0;
+            snapshot.forEach(item => {
+                this.messages.push(item.val());
+            });
+
+            this.messages = this.messages.reverse();
+            this.renderMessages();
+        });
     }
 
     onAddMessage(event) {
@@ -52,7 +56,7 @@ export default class Chat {
 
         if(!messageEl.value) return;
 
-        this.message.push({
+        firebase.database().ref("/messages").push({
             pseudo: `${firstname} ${lastname}`,
             message: messageEl.value,
             date: Date.now(),
@@ -68,7 +72,7 @@ export default class Chat {
 
         const ul = document.getElementById('messages');
 
-        ul.innerHTML = this.message.map(message => `<li class="list-group-item d-flex align-items-start">
+        ul.innerHTML = this.messages.map(message => `<li class="list-group-item d-flex align-items-start">
         <img class="rounded" src="//gradientjoy.com/40x40" style="width:40px;" />
         <div class="d-flex w-100 flex-column align-items-start ml-2">
             <span class="badge badge-dark mr-1">${message.pseudo}</span>
@@ -78,5 +82,7 @@ export default class Chat {
     </li>`).join('');
 
     }
+
+
 
 }
